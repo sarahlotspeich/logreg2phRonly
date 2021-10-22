@@ -8,7 +8,7 @@ The complete R package `logreg2ph` and code for the simulation settings included
 To install the package, run the following in your `R` console: 
 
 ```{r}
-devtools::install_github("sarahlotspeich/logreg2ph")
+devtools::install_github("sarahlotspeich/logreg2ph_R_only")
 ```
 
 ### Simulation settings 
