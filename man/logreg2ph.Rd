@@ -55,8 +55,9 @@ logreg2ph(
 \item{MAX_ITER}{Maximum number of iterations allowed in the EM algorithm.}
 }
 \value{
-\item{model_coeff}{dataframe with final model coefficients and standard error estimates (where applicable).}
-\item{bspline_coeff}{dataframe with B-spline coefficients.}
+\item{model_coeff}{dataframe with final model coefficients and standard error estimates (where applicable) for the analysis model.}
+\item{outcome_error_coeff}{dataframe with final model coefficients for the outcome error model.}
+\item{bspline_coeff}{dataframe with B-spline coefficients for the covariate error model.}
 \item{converged}{indicator of EM algorithm convergence for parameter estimates.}
 \item{se_converged}{indicator of standard error estimate convergence.}
 \item{converged_msg}{(where applicable) description of non-convergence.}

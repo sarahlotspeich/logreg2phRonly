@@ -17,8 +17,9 @@
 #' @param TOL Tolerance between iterations in the EM algorithm used to define convergence.
 #' @param MAX_ITER Maximum number of iterations allowed in the EM algorithm.
 #' @return
-#' \item{model_coeff}{dataframe with final model coefficients and standard error estimates (where applicable).}
-#' \item{bspline_coeff}{dataframe with B-spline coefficients.}
+#' \item{model_coeff}{dataframe with final model coefficients and standard error estimates (where applicable) for the analysis model.}
+#' \item{outcome_error_coeff}{dataframe with final model coefficients for the outcome error model.}
+#' \item{bspline_coeff}{dataframe with B-spline coefficients for the covariate error model.}
 #' \item{converged}{indicator of EM algorithm convergence for parameter estimates.}
 #' \item{se_converged}{indicator of standard error estimate convergence.}
 #' \item{converged_msg}{(where applicable) description of non-convergence.}
@@ -50,6 +51,7 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
       warning("Empty sieve in validated data. Reconstruct B-spline basis and try again.", call. = FALSE)
 
       return(list(model_coeff = NULL,
+                  outcome_error_coeff = NULL,
                   bspline_coeff = NULL,
                   converged = FALSE,
                   se_converged = NA,
@@ -361,8 +363,8 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
   if(!CONVERGED) {
     if(it > MAX_ITER) { CONVERGED_MSG = "MAX_ITER reached" }
 
-    return(list(model_coeff = data.frame(Coefficient = matrix(NA, nrow = nrow(prev_theta)),
-                                          SE = NA),
+    return(list(model_coeff = data.frame(Coefficient = rep(NA, times = nrow(prev_theta)), SE = NA),
+                outcome_error_coeff = data.frame(Coefficient = rep(NA, times = nrow(prev_gamma))),
                 bspline_coeff = cbind(x_obs, NA),
                 converged = CONVERGED,
                 se_converged = NA,
@@ -397,6 +399,7 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
 
     return(list(model_coeff = data.frame(Coefficient = new_theta,
                                           SE = NA),
+                outcome_error_coeff = data.frame(Coefficient = new_gamma),
                 bspline_coeff = cbind(x_obs, new_p),
                 converged = CONVERGED,
                 se_converged = NA,
@@ -517,6 +520,7 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
     if (any(is.na(se_theta))) { SE_CONVERGED <- FALSE} else { TRUE }
     return(list(model_coeff = data.frame(Coefficient = new_theta,
                                           SE = se_theta),
+                outcome_error_coeff = data.frame(Coefficient = new_gamma),
                 bspline_coeff = cbind(x_obs, new_p),
                 vcov = cov_theta,
                 converged = CONVERGED,
