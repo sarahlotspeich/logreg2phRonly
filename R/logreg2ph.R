@@ -17,7 +17,8 @@
 #' @param TOL Tolerance between iterations in the EM algorithm used to define convergence.
 #' @param MAX_ITER Maximum number of iterations allowed in the EM algorithm.
 #' @return
-#' \item{Coefficients}{dataframe with final coefficient and standard error estimates (where applicable).}
+#' \item{model_coeff}{dataframe with final model coefficients and standard error estimates (where applicable).}
+#' \item{bspline_coeff}{dataframe with B-spline coefficients.}
 #' \item{converged}{indicator of EM algorithm convergence for parameter estimates.}
 #' \item{se_converged}{indicator of standard error estimate convergence.}
 #' \item{converged_msg}{(where applicable) description of non-convergence.}
@@ -48,8 +49,8 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
     if(0 %in% colSums(data[c(1:n), Bspline])) {
       warning("Empty sieve in validated data. Reconstruct B-spline basis and try again.", call. = FALSE)
 
-      return(list(Coefficients = data.frame(Coefficient = NA,
-                                            SE = NA),
+      return(list(model_coeff = NULL,
+                  bspline_coeff = NULL,
                   converged = FALSE,
                   se_converged = NA,
                   converged_msg = "B-spline error",
@@ -360,8 +361,9 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
   if(!CONVERGED) {
     if(it > MAX_ITER) { CONVERGED_MSG = "MAX_ITER reached" }
 
-    return(list(Coefficients = data.frame(Coefficient = matrix(NA, nrow = nrow(prev_theta)),
+    return(list(model_coeff = data.frame(Coefficient = matrix(NA, nrow = nrow(prev_theta)),
                                           SE = NA),
+                bspline_coeff = cbind(x_obs, NA),
                 converged = CONVERGED,
                 se_converged = NA,
                 converged_msg = CONVERGED_MSG,
@@ -393,8 +395,9 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
                                                gamma = new_gamma,
                                                p = new_p)
 
-    return(list(Coefficients = data.frame(Coefficient = new_theta,
+    return(list(model_coeff = data.frame(Coefficient = new_theta,
                                           SE = NA),
+                bspline_coeff = cbind(x_obs, new_p),
                 converged = CONVERGED,
                 se_converged = NA,
                 converged_msg = CONVERGED_MSG,
@@ -512,8 +515,9 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
                             }
     )
     if (any(is.na(se_theta))) { SE_CONVERGED <- FALSE} else { TRUE }
-    return(list(Coefficients = data.frame(Coefficient = new_theta,
+    return(list(model_coeff = data.frame(Coefficient = new_theta,
                                           SE = se_theta),
+                bspline_coeff = cbind(x_obs, new_p),
                 vcov = cov_theta,
                 converged = CONVERGED,
                 se_converged = SE_CONVERGED,
