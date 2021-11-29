@@ -43,7 +43,7 @@ cv_loglik <- function(nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unval = NULL, 
     if (train_fit$converged) {
       train_theta <- train_fit$model_coeff$coeff
       train_gamma <- train_fit$outcome_error_coeff$coeff
-      train_p <- train_fit$b_spline_coeff
+      train_p <- train_fit$bspline_coeff
       train_x <- data.frame(train[train[, Validated] == 1, X_val])
       train_x <- data.frame(train_x[order(train_x[, 1]), ])
       colnames(train_x) <- X_val
