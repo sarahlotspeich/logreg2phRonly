@@ -41,8 +41,8 @@ cv_loglik <- function(nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unval = NULL, 
     msg[f] <- train_fit$converged_msg
 
     if (train_fit$converged) {
-      train_theta <- train_fit$coeff$coeff
-      train_gamma <- train_fit$outcome_err_coeff$coeff
+      train_theta <- train_fit$model_coeff$coeff
+      train_gamma <- train_fit$outcome_error_coeff$coeff
       train_p <- train_fit$b_spline_coeff
       train_x <- data.frame(train[train[, Validated] == 1, X_val])
       train_x <- data.frame(train_x[order(train_x[, 1]), ])

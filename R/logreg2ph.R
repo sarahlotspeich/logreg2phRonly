@@ -363,8 +363,8 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
   if(!CONVERGED) {
     if(it > MAX_ITER) { CONVERGED_MSG = "MAX_ITER reached" }
 
-    return(list(model_coeff = data.frame(Coefficient = rep(NA, times = nrow(prev_theta)), SE = NA),
-                outcome_error_coeff = data.frame(Coefficient = rep(NA, times = nrow(prev_gamma))),
+    return(list(model_coeff = data.frame(coeff = rep(NA, times = nrow(prev_theta)), se = NA),
+                outcome_error_coeff = data.frame(coeff = rep(NA, times = nrow(prev_gamma))),
                 bspline_coeff = cbind(x_obs, NA),
                 converged = CONVERGED,
                 se_converged = NA,
@@ -397,9 +397,9 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
                                                gamma = new_gamma,
                                                p = new_p)
 
-    return(list(model_coeff = data.frame(Coefficient = new_theta,
-                                          SE = NA),
-                outcome_error_coeff = data.frame(Coefficient = new_gamma),
+    return(list(model_coeff = data.frame(coeff = new_theta,
+                                          se = NA),
+                outcome_error_coeff = data.frame(coeff = new_gamma),
                 bspline_coeff = cbind(x_obs, new_p),
                 converged = CONVERGED,
                 se_converged = NA,
@@ -518,9 +518,9 @@ logreg2ph <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL
                             }
     )
     if (any(is.na(se_theta))) { SE_CONVERGED <- FALSE} else { TRUE }
-    return(list(model_coeff = data.frame(Coefficient = new_theta,
-                                          SE = se_theta),
-                outcome_error_coeff = data.frame(Coefficient = new_gamma),
+    return(list(model_coeff = data.frame(coeff = new_theta,
+                                          se = se_theta),
+                outcome_error_coeff = data.frame(coeff = new_gamma),
                 bspline_coeff = cbind(x_obs, new_p),
                 vcov = cov_theta,
                 converged = CONVERGED,
