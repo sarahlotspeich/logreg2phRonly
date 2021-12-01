@@ -32,7 +32,7 @@ cv_loglik <- function(seed = 1, nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unva
   ll <- rep(NA, nfolds)
   #fold_ll <- re_fold_ll <- vector()
   for (f in 1:nfolds) {
-    train <- data[assign_folds == f, ]
+    train <- data[assign_folds != f, ]
     suppressMessages(
       train_fit <- logreg2ph(Y_unval = Y_unval, Y_val = Y_val, X_unval = X_unval, X_val = X_val, C = C,
                              Validated = Validated, Bspline = Bspline, data = train,
@@ -52,7 +52,7 @@ cv_loglik <- function(seed = 1, nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unva
       train_x <- cbind(k = 1:nrow(train_x), train_x)
       train_p <- merge(train_x, train_p)
 
-      test <- data[assign_folds != f, ]
+      test <- data[assign_folds == f, ]
       test_x <- data.frame(test[test[, Validated] == 1, X_val])
       test_x <- data.frame(test_x[order(test_x[, 1]), ])
       colnames(test_x) <- X_val
