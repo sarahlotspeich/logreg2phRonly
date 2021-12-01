@@ -1,6 +1,7 @@
 #' Performs cross-validation to calculate the average predicted log likelihood for the \code{logreg2ph} method. This function can be used to select the B-spline basis that yields the largest average predicted log likelihood.
 #'
 #' @param nfolds Specifies the number of cross-validation folds. The default value is \code{5}. Although \code{nfolds} can be as large as the sample size (leave-one-out cross-validation), it is not recommended for large datasets. The smallest value allowable is \code{3}.
+#' @param seed (For reproducibility in assigning the folds) an integer to specify the random number generator.
 #' @param Y_unval Column name with the unvalidated outcome. If \code{Y_unval} is null, the outcome is assumed to be error-free.
 #' @param Y_val Column name with the validated outcome.
 #' @param X_unval Column name(s) with the unvalidated predictors.  If \code{X_unval} and \code{X_val} are \code{null}, all precictors are assumed to be error-free.
@@ -18,12 +19,13 @@
 #' \item{pred_loglike}{Stores the predicted log likelihoood in each fold.}
 #' \item{converged}{Stores the convergence status of the EM algorithm in each run.}
 #' @export
-cv_loglik <- function(nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL, C = NULL,
+cv_loglik <- function(seed = 1, nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL, C = NULL,
                       Validated = NULL, Bspline = NULL, data, theta_pred = NULL, gamma_pred = NULL,
                       TOL = 1E-4, MAX_ITER = 1000) {
   if (is.null(theta_pred)) { theta_pred <- c(X_val, C) }
   if (is.null(gamma_pred) & !is.null(Y_unval)) { gamma_pred <- c(X_unval, Y_val, X_val, C) }
 
+  set.seed(seed)
   assign_folds <- sample(x = 1:nfolds, size = nrow(data), replace = TRUE)
   status <- rep(TRUE, nfolds)
   msg <- rep("", nfolds)

@@ -5,6 +5,7 @@
 \title{Performs cross-validation to calculate the average predicted log likelihood for the \code{logreg2ph} method. This function can be used to select the B-spline basis that yields the largest average predicted log likelihood.}
 \usage{
 cv_loglik(
+  seed = 1,
   nfolds = 5,
   Y_unval = NULL,
   Y_val = NULL,
@@ -21,6 +22,8 @@ cv_loglik(
 )
 }
 \arguments{
+\item{seed}{(For reproducibility in assigning the folds) an integer to specify the random number generator.}
+
 \item{nfolds}{Specifies the number of cross-validation folds. The default value is \code{5}. Although \code{nfolds} can be as large as the sample size (leave-one-out cross-validation), it is not recommended for large datasets. The smallest value allowable is \code{3}.}
 
 \item{Y_unval}{Column name with the unvalidated outcome. If \code{Y_unval} is null, the outcome is assumed to be error-free.}
