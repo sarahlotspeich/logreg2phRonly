@@ -92,7 +92,7 @@ cv_loglik <- function(nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unval = NULL, 
                                    Y_unval = Y_unval, Y_val = Y_val, X_unval = X_unval, X_val = X_val, C = C,
                                    Bspline = Bspline, comp_dat_all = cd, theta_pred = theta_pred, gamma_pred = gamma_pred,
                                    theta = train_theta, gamma = train_gamma, p = re_test_p)
-      ll[i] <- ll_f
+      ll[f] <- ll_f
     } else {
 
     }
