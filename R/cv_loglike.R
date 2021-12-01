@@ -93,8 +93,6 @@ cv_loglik <- function(nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unval = NULL, 
                                    Bspline = Bspline, comp_dat_all = cd, theta_pred = theta_pred, gamma_pred = gamma_pred,
                                    theta = train_theta, gamma = train_gamma, p = re_test_p)
       ll[f] <- ll_f
-    } else {
-
     }
   }
   return(list(avg_pred_loglike = mean(ll), pred_loglike = ll, converged = msg))
