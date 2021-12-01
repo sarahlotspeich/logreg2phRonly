@@ -85,8 +85,8 @@ cv_loglik <- function(nfolds = 5, Y_unval = NULL, Y_val = NULL, X_unval = NULL, 
       re_test_p <- t(t(test_p) / denom)
 
       # Construct complete dataset
-      cd <- complete_data(Y_unval = "Ystar", Y_val = "Y", X_unval = "Xbstar", X_val = "Xb", C = "Xa",
-                          Validated = "V", Bspline = colnames(B), data = test)
+      cd <- complete_data(Y_unval = Y_unval, Y_val = Y_val, X_unval = X_unval, X_val = X_val, C = C,
+                          Validated = Validated, Bspline = Bspline, data = test)
       # Calculate log-likelihood -------------------------------------------
       ll_f <- observed_data_loglik(N = nrow(test), n = sum(test[, Validated]),
                                    Y_unval = Y_unval, Y_val = Y_val, X_unval = X_unval, X_val = X_val, C = C,
