@@ -98,117 +98,15 @@ cv_loglik <- function(seed = 1, interp = TRUE, nfolds = 5, Y_unval = NULL, Y_val
                                      theta = train_theta, gamma = train_gamma, p = re_test_p)
       } else {
         # Construct complete dataset
-        N <- nrow(test)
-        n <- sum(test[, Validated])
-        # Reorder so that the n validated subjects are first ------------
-        test <- test[order(as.numeric(test[, Validated]), decreasing = TRUE), ]
-        test$id <- 1:N
-
-        # Determine error setting -----------------------------------------
-        ## If unvalidated variable was left blank, assume error-free ------
-        errorsY <- errorsX <- TRUE
-        if (is.null(Y_unval)) {errorsY <- FALSE}
-        if (is.null(X_unval) & is.null(X_val)) {errorsX <- FALSE}
-        pred <- unique(c(theta_pred, gamma_pred))
-
-        # Save static (X*,Y*,X,Y,C) since they don't change ---------------
-        cd_v <- test[c(1:n), c("id", Y_unval, X_unval, C, Bspline, X_val, Y_val)]
-
-        if (errorsX) {
-          # Replicate the train_x values
-          m <- nrow(train_x)
-          train_x_stacked <- do.call(rbind, replicate(n = (N - n), expr = train_x, simplify = FALSE))
-          train_x_stacked <- data.frame(train_x_stacked[order(train_x_stacked[, 1]), ])
-
-          # Save validated data
-          cd_v <- merge(x = cd_v, y = train_x, all.x = TRUE)
-          cd_v <- cd_v[, c("id", Y_unval, pred, Bspline, "k")]
-          cd_v <- data.matrix(cd_v)
-
-          # Augment unvalidated data with test_x
-          suppressWarnings(
-            cd_uv <- cbind(test[-c(1:n), c("id", Y_unval, setdiff(x = pred, y = c(Y_val, X_val)), Bspline)],
-                           train_x_stacked)
-          )
-        } else {
-          cd_uv <- test[-c(1:n), c(Y_unval, setdiff(x = pred, y = c(Y_val)))]
-        }
-
-        if (errorsY) {
-          cd_uv0 <- data.frame(cd_uv, Y = 0)
-          cd_uv1 <- data.frame(cd_uv, Y = 1)
-          colnames(cd_uv0)[length(colnames(cd_uv0))] <- colnames(cd_uv1)[length(colnames(cd_uv1))] <- Y_val
-          cd_uv <- data.matrix(cbind(rbind(cd_uv0, cd_uv1)))
-        }
-        cd <- rbind(cd_v, cd_uv[, colnames(cd_v)])
-
+        cd <- complete_data(Y_unval = Y_unval, Y_val = Y_val, X_unval = X_unval, X_val = X_val,
+                            try_X = train_x, C = C,
+                            Validated = Validated, Bspline = Bspline, data = test)
 
         # Calculate log-likelihood -------------------------------------------
-        # For validated subjects --------------------------------------------------------
-        #################################################################################
-        ## Sum over log[P_theta(Yi|Xi)] -------------------------------------------------
-        pY_X <- 1 / (1 + exp(-as.numeric(cbind(int = 1, cd[c(1:n), theta_pred]) %*% train_theta)))
-        pY_X <- ifelse(as.vector(cd[c(1:n), c(Y_val)]) == 0, 1 - pY_X, pY_X)
-        ll_f <- sum(log(pY_X))
-        ## ------------------------------------------------- Sum over log[P_theta(Yi|Xi)]
-        #################################################################################
-        if (errorsY) {
-          ## Sum over log[P(Yi*|Xi*,Yi,Xi)] -----------------------------------------------
-          pYstar <- 1 / (1 + exp(-as.numeric(cbind(int = 1, cd[c(1:n), gamma_pred]) %*% train_gamma)))
-          pYstar <- ifelse(as.vector(cd[c(1:n), Y_unval]) == 0, 1 - pYstar, pYstar)
-          ll_f <- ll_f + sum(log(pYstar))
-          ## ----------------------------------------------- Sum over log[P(Yi*|Xi*,Yi,Xi)]
-        }
-        #################################################################################
-        if (errorsX) {
-          ## Sum over I(Xi=xk)Bj(Xi*)log p_kj ---------------------------------------------
-          pX <- train_p[cd[c(1:n), "k"], ]
-          log_pX <- log(pX)
-          log_pX[log_pX == -Inf] <- 0
-          ll_f <- ll_f + sum(cd[c(1:n), Bspline] * log_pX, na.rm = TRUE)
-          ## --------------------------------------------- Sum over I(Xi=xk)Bj(Xi*)log q_kj
-        }
-        #################################################################################
-        # -------------------------------------------------------- For validated subjects
-
-        # For unvalidated subjects ------------------------------------------------------
-        ## Calculate P_theta(y|x) for all (y,xk) ----------------------------------------
-        pY_X <- 1 / (1 + exp(-as.numeric(cbind(int = 1, cd[-c(1:n), theta_pred]) %*% train_theta)))
-        pY_X[which(cd[-c(1:n), Y_val] == 0)] <- 1 - pY_X[which(cd[-c(1:n), Y_val] == 0)]
-        ## ---------------------------------------- Calculate P_theta(y|x) for all (y,xk)
-        ################################################################################
-        if (errorsY) {
-          ## Calculate P(Yi*|Xi*,y,xk) for all (y,xk) ------------------------------------
-          pYstar <- 1 / (1 + exp(-as.numeric(cbind(int = 1, cd[-c(1:n), gamma_pred]) %*% train_gamma)))
-          pYstar[which(cd[-c(1:n), Y_unval] == 0)] <- 1 - pYstar[which(cd[-c(1:n), Y_unval] == 0)]
-          ## ------------------------------------ Calculate P(Yi*|Xi*,y,xk) for all (y,xk)
-        } else {
-          pYstar <- rep(1, nrow(cd[-c(1:n), ]))
-        }
-        ################################################################################
-        if (errorsX) {
-          ## Calculate Bj(Xi*) p_kj for all (k,j) --------------------------------------
-          pX <- rowSums(train_p[cd[-c(1:n), "k"], ] * cd[-c(1:n), Bspline])
-          ## -------------------------------------- Calculate Bj(Xi*) p_kj for all (k,j)
-        } else {
-          pX <- rep(1, nrow(cd[-c(1:n), ]))
-        }
-        ################################################################################
-        ## Calculate sum of P(y|xk) x P(Y*|X*,y,xk) x Bj(X*) x p_kj --------------------
-        if (errorsY & errorsX) {
-          person_sum <- rowsum(c(pY_X * pYstar * pX), group = rep(seq(1, (N - n)), times = 2 * m))
-        } else if (errorsY) {
-          person_sum <- rowsum(c(pY_X * pYstar), group = rep(seq(1, (N - n)), times = 2))
-        } else if (errorsX) {
-          person_sum <- rowsum(c(pY_X * pX), group = rep(seq(1, (N - n)), times = m))
-        }
-        person_sum <- rowSums(person_sum)
-        log_person_sum <- log(person_sum)
-        log_person_sum[log_person_sum == -Inf] <- 0
-        ## And sum over them all -------------------------------------------------------
-        ll_f <- ll_f + sum(log_person_sum)
-        ################################################################################
-        # ----------------------------------------------------- For unvalidated subjects
+        ll_f <- observed_data_loglik(N = nrow(test), n = sum(test[, Validated]),
+                                     Y_unval = Y_unval, Y_val = Y_val, X_unval = X_unval, X_val = X_val, C = C,
+                                     Bspline = Bspline, comp_dat_all = cd, theta_pred = theta_pred, gamma_pred = gamma_pred,
+                                     theta = train_theta, gamma = train_gamma, p = train_p[, Bspline])
       }
       ll[f] <- ll_f
     }
