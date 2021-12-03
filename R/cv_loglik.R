@@ -122,7 +122,7 @@ cv_loglik <- function(seed = 1, interp = TRUE, nfolds = 5, Y_unval = NULL, Y_val
           train_x_stacked <- data.frame(train_x_stacked[order(train_x_stacked[, 1]), ])
 
           # Save validated data
-          cd_v <- merge(x = cd_v, y = x_obs, all.x = TRUE)
+          cd_v <- merge(x = cd_v, y = train_x, all.x = TRUE)
           cd_v <- cd_v[, c("id", Y_unval, pred, Bspline, "k")]
           cd_v <- data.matrix(cd_v)
 
