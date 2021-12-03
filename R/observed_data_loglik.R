@@ -58,7 +58,7 @@ observed_data_loglik <- function(N, n, Y_unval = NULL, Y_val = NULL, X_unval = N
     pX <- p[comp_dat_all[c(1:n), "k"], ]
     log_pX <- log(pX)
     log_pX[log_pX == -Inf] <- 0
-    return_loglik <- return_loglik + sum(comp_dat_all[c(1:n), Bspline] * log_pX)
+    return_loglik <- return_loglik + sum(comp_dat_all[c(1:n), Bspline] * log_pX, na.rm = TRUE)
     ## --------------------------------------------- Sum over I(Xi=xk)Bj(Xi*)log q_kj
   }
   #################################################################################
@@ -81,7 +81,7 @@ observed_data_loglik <- function(N, n, Y_unval = NULL, Y_val = NULL, X_unval = N
   ################################################################################
   if (errorsX) {
     ## Calculate Bj(Xi*) p_kj for all (k,j) ----------------------------------------
-    pX <- p[comp_dat_all[-c(1:n), "k"], ]
+    pX <- rowSums(p[comp_dat_all[-c(1:n), "k"], ] * comp_dat_all[-c(1:n), Bspline])
     ## ---------------------------------------- Calculate Bj(Xi*) p_kj for all (k,j)
   } else {
     pX <- rep(1, nrow(comp_dat_all[-c(1:n), ]))
@@ -89,13 +89,13 @@ observed_data_loglik <- function(N, n, Y_unval = NULL, Y_val = NULL, X_unval = N
   ################################################################################
   ## Calculate sum of P(y|xk) x P(Y*|X*,y,xk) x Bj(X*) x p_kj --------------------
   if (errorsY & errorsX) {
-    person_sum <- rowsum(c(pY_X * pYstar * pX) * comp_dat_all[-c(1:n), Bspline], group = rep(seq(1, (N - n)), times = 2 * m))
+    person_sum <- rowsum(c(pY_X * pYstar) * pX, group = rep(seq(1, (N - n)), times = 2 * m))
   } else if (errorsY) {
-    person_sum <- rowsum(c(pY_X * pYstar), group = rep(seq(1, (N - n)), times = 2))
+    person_sum <- rowsum(pY_X * pYstar, group = rep(seq(1, (N - n)), times = 2))
   } else if (errorsX) {
-    person_sum <- rowsum(c(pY_X * pX) * comp_dat_all[-c(1:n), Bspline], group = rep(seq(1, (N - n)), times = m))
+    person_sum <- rowsum(pY_X * pX, group = rep(seq(1, (N - n)), times = m))
   }
-  person_sum <- rowSums(person_sum)
+  #person_sum <- rowSums(person_sum)
   log_person_sum <- log(person_sum)
   log_person_sum[log_person_sum == -Inf] <- 0
   ## And sum over them all -------------------------------------------------------
