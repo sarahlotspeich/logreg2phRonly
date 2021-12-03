@@ -10,6 +10,7 @@ complete_data(
   Y_val = NULL,
   X_unval = NULL,
   X_val = NULL,
+  try_X = NULL,
   C = NULL,
   Validated = NULL,
   Bspline = NULL,
@@ -26,6 +27,8 @@ complete_data(
 \item{X_unval}{Column name(s) with the unvalidated predictors.  If \code{X_unval} and \code{X_val} are \code{null}, all precictors are assumed to be error-free.}
 
 \item{X_val}{Column name(s) with the validated predictors. If \code{X_unval} and \code{X_val} are \code{null}, all precictors are assumed to be error-free.}
+
+\item{try_X}{(Optional) Vector or dataframe of observed values of \code{X_val} to be used to create the complete dataset. If \code{try_X = NULL} (DEFAULT), then the unique values of \code{X_val} in \code{data} will be used.}
 
 \item{C}{(Optional) Column name(s) with additional error-free covariates.}
 

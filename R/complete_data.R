@@ -5,6 +5,7 @@
 #' @param Y_val Column names with the validated outcome.
 #' @param X_unval Column name(s) with the unvalidated predictors.  If \code{X_unval} and \code{X_val} are \code{null}, all precictors are assumed to be error-free.
 #' @param X_val Column name(s) with the validated predictors. If \code{X_unval} and \code{X_val} are \code{null}, all precictors are assumed to be error-free.
+#' @param try_X (Optional) Vector or dataframe of observed values of \code{X_val} to be used to create the complete dataset. If \code{try_X = NULL} (DEFAULT), then the unique values of \code{X_val} in \code{data} will be used.
 #' @param C (Optional) Column name(s) with additional error-free covariates.
 #' @param Validated Column name with the validation indicator. The validation indicator can be defined as \code{Validated = 1} or \code{TRUE} if the subject was validated and \code{Validated = 0} or \code{FALSE} otherwise.
 #' @param Bspline Vector of column names containing the B-spline basis functions.
@@ -14,7 +15,7 @@
 #' @return dataframe
 #' @export
 
-complete_data <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL, C = NULL,
+complete_data <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL, try_X = NULL, C = NULL,
                           Validated = NULL, Bspline = NULL, data, theta_pred = NULL, gamma_pred = NULL) {
   N <- nrow(data)
   n <- sum(data[, Validated])
@@ -38,8 +39,13 @@ complete_data <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = 
   pred <- unique(c(theta_pred, gamma_pred))
 
   if (errorsX & errorsY) {
-    # Save distinct X -------------------------------------------------
-    x_obs <- data.frame(unique(data[1:n, c(X_val)]))
+    if (is.null(try_X)) {
+      # Save distinct X -------------------------------------------------
+      x_obs <- data.frame(unique(data[1:n, c(X_val)]))
+    } else {
+      # Use user-supplied X values --------------------------------------
+      x_obs <- data.frame(try_X)
+    }
     x_obs <- data.frame(x_obs[order(x_obs[, 1]), ])
     m <- nrow(x_obs)
     x_obs_stacked <- do.call(rbind, replicate(n = (N - n), expr = x_obs, simplify = FALSE))
@@ -65,8 +71,13 @@ complete_data <- function(Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = 
 
     comp_dat_all <- rbind(comp_dat_val, comp_dat_unval)
   } else if (errorsX) {
-    # Save distinct X -------------------------------------------------
-    x_obs <- data.frame(unique(data[1:n, c(X_val)]))
+    if (is.null(try_X)) {
+      # Save distinct X -------------------------------------------------
+      x_obs <- data.frame(unique(data[1:n, c(X_val)]))
+    } else {
+      # Use user-supplied X values --------------------------------------
+      x_obs <- data.frame(try_X)
+    }
     x_obs <- data.frame(x_obs[order(x_obs[, 1]), ])
     m <- nrow(x_obs)
     x_obs_stacked <- do.call(rbind, replicate(n = (N - n), expr = x_obs, simplify = FALSE))
