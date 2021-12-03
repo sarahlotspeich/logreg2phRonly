@@ -145,8 +145,10 @@ cv_loglik <- function(seed = 1, interp = TRUE, nfolds = 5, Y_unval = NULL, Y_val
 
         # Calculate log-likelihood -------------------------------------------
         ll_f <- observed_data_loglik(N = N, n = n,
-                                     Y_unval = Y_unval, Y_val = Y_val, X_unval = X_unval, X_val = X_val, C = C,
-                                     Bspline = Bspline, comp_dat_all = cd, theta_pred = theta_pred, gamma_pred = gamma_pred,
+                                     Y_unval = Y_unval, Y_val = Y_val,
+                                     X_unval = X_unval, X_val = X_val, C = C,
+                                     Bspline = Bspline, comp_dat_all = cd,
+                                     theta_pred = theta_pred, gamma_pred = gamma_pred,
                                      theta = train_theta, gamma = train_gamma, p = train_p)
       }
       ll[f] <- ll_f

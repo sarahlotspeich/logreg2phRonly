@@ -3,3 +3,4 @@
 export(complete_data)
 export(cv_loglik)
 export(logreg2ph)
+export(observed_data_loglik)

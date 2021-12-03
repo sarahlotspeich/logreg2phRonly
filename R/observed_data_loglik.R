@@ -20,6 +20,7 @@
 #' @param gamma Parameters for the outcome error model (a column vector)
 #' @param p B-spline coefficients for the approximated covariate error model (a matrix)
 #' @return Scalar value of the function
+#' @export
 
 observed_data_loglik <- function(N, n, Y_unval = NULL, Y_val = NULL, X_unval = NULL, X_val = NULL, C = NULL,
                                  Bspline = NULL, comp_dat_all, theta_pred, gamma_pred, theta, gamma, p) {
