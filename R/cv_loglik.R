@@ -31,7 +31,6 @@ cv_loglik <- function(seed = 1, interp = TRUE, nfolds = 5, Y_unval = NULL, Y_val
   status <- rep(TRUE, nfolds)
   msg <- rep("", nfolds)
   ll <- rep(NA, nfolds)
-  #fold_ll <- re_fold_ll <- vector()
   for (f in 1:nfolds) {
     train <- data[assign_folds != f, ]
     suppressMessages(
@@ -143,13 +142,73 @@ cv_loglik <- function(seed = 1, interp = TRUE, nfolds = 5, Y_unval = NULL, Y_val
         }
         cd <- rbind(cd_v, cd_uv[, colnames(cd_v)])
 
+
         # Calculate log-likelihood -------------------------------------------
-        ll_f <- observed_data_loglik(N = N, n = n,
-                                     Y_unval = Y_unval, Y_val = Y_val,
-                                     X_unval = X_unval, X_val = X_val, C = C,
-                                     Bspline = Bspline, comp_dat_all = cd,
-                                     theta_pred = theta_pred, gamma_pred = gamma_pred,
-                                     theta = train_theta, gamma = train_gamma, p = train_p)
+        # For validated subjects --------------------------------------------------------
+        #################################################################################
+        ## Sum over log[P_theta(Yi|Xi)] -------------------------------------------------
+        pY_X <- 1 / (1 + exp(-as.numeric(cbind(int = 1, cd[c(1:n), theta_pred]) %*% train_theta)))
+        pY_X <- ifelse(as.vector(cd[c(1:n), c(Y_val)]) == 0, 1 - pY_X, pY_X)
+        ll_f <- sum(log(pY_X))
+        ## ------------------------------------------------- Sum over log[P_theta(Yi|Xi)]
+        #################################################################################
+        if (errorsY) {
+          ## Sum over log[P(Yi*|Xi*,Yi,Xi)] -----------------------------------------------
+          pYstar <- 1 / (1 + exp(-as.numeric(cbind(int = 1, cd[c(1:n), gamma_pred]) %*% train_gamma)))
+          pYstar <- ifelse(as.vector(cd[c(1:n), Y_unval]) == 0, 1 - pYstar, pYstar)
+          ll_f <- ll_f + sum(log(pYstar))
+          ## ----------------------------------------------- Sum over log[P(Yi*|Xi*,Yi,Xi)]
+        }
+        #################################################################################
+        if (errorsX) {
+          ## Sum over I(Xi=xk)Bj(Xi*)log p_kj ---------------------------------------------
+          pX <- train_p[cd[c(1:n), "k"], ]
+          log_pX <- log(pX)
+          log_pX[log_pX == -Inf] <- 0
+          ll_f <- ll_f + sum(cd[c(1:n), Bspline] * log_pX, na.rm = TRUE)
+          ## --------------------------------------------- Sum over I(Xi=xk)Bj(Xi*)log q_kj
+        }
+        #################################################################################
+        # -------------------------------------------------------- For validated subjects
+
+        # For unvalidated subjects ------------------------------------------------------
+        ## Calculate P_theta(y|x) for all (y,xk) ----------------------------------------
+        pY_X <- 1 / (1 + exp(-as.numeric(cbind(int = 1, cd[-c(1:n), theta_pred]) %*% train_theta)))
+        pY_X[which(cd[-c(1:n), Y_val] == 0)] <- 1 - pY_X[which(cd[-c(1:n), Y_val] == 0)]
+        ## ---------------------------------------- Calculate P_theta(y|x) for all (y,xk)
+        ################################################################################
+        if (errorsY) {
+          ## Calculate P(Yi*|Xi*,y,xk) for all (y,xk) ------------------------------------
+          pYstar <- 1 / (1 + exp(-as.numeric(cbind(int = 1, cd[-c(1:n), gamma_pred]) %*% train_gamma)))
+          pYstar[which(cd[-c(1:n), Y_unval] == 0)] <- 1 - pYstar[which(cd[-c(1:n), Y_unval] == 0)]
+          ## ------------------------------------ Calculate P(Yi*|Xi*,y,xk) for all (y,xk)
+        } else {
+          pYstar <- rep(1, nrow(cd[-c(1:n), ]))
+        }
+        ################################################################################
+        if (errorsX) {
+          ## Calculate Bj(Xi*) p_kj for all (k,j) --------------------------------------
+          pX <- rowSums(train_p[cd[-c(1:n), "k"], ] * cd[-c(1:n), Bspline])
+          ## -------------------------------------- Calculate Bj(Xi*) p_kj for all (k,j)
+        } else {
+          pX <- rep(1, nrow(cd[-c(1:n), ]))
+        }
+        ################################################################################
+        ## Calculate sum of P(y|xk) x P(Y*|X*,y,xk) x Bj(X*) x p_kj --------------------
+        if (errorsY & errorsX) {
+          person_sum <- rowsum(c(pY_X * pYstar * pX), group = rep(seq(1, (N - n)), times = 2 * m))
+        } else if (errorsY) {
+          person_sum <- rowsum(c(pY_X * pYstar), group = rep(seq(1, (N - n)), times = 2))
+        } else if (errorsX) {
+          person_sum <- rowsum(c(pY_X * pX), group = rep(seq(1, (N - n)), times = m))
+        }
+        person_sum <- rowSums(person_sum)
+        log_person_sum <- log(person_sum)
+        log_person_sum[log_person_sum == -Inf] <- 0
+        ## And sum over them all -------------------------------------------------------
+        ll_f <- ll_f + sum(log_person_sum)
+        ################################################################################
+        # ----------------------------------------------------- For unvalidated subjects
       }
       ll[f] <- ll_f
     }
