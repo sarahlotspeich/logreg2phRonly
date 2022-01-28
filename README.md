@@ -1,6 +1,6 @@
 # Efficient odds ratio estimation under two-phase sampling using error-prone data from a multi-national HIV research cohort
 ## Lotspeich, Shepherd, Amorim, Shaw, and Tao
-The complete R package `logreg2ph_R_only` and code for the simulation settings included in the paper. *This is an alternate implementation of `logreg2ph` that uses strictly R code.* 
+The complete R package `logreg2phRonly` and code for the simulation settings included in the paper. *This is an alternate implementation of `logreg2ph` that uses strictly R code.* 
 
 ### Citation
 
