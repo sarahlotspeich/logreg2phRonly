@@ -45,13 +45,13 @@ observed_data_loglik <- function(N, n, Y_unval = NULL, Y_val = NULL, X_unval = N
   return_loglik <- sum(log(pY_X))
   ## ------------------------------------------------- Sum over log[P_theta(Yi|Xi)]
   #################################################################################
+  ## Sum over log[P(Yi*|Xi*,Yi,Xi)] -----------------------------------------------
   if (errorsY) {
-    ## Sum over log[P(Yi*|Xi*,Yi,Xi)] -----------------------------------------------
     pYstar <- 1 / (1 + exp(-as.numeric(cbind(int = 1, comp_dat_all[c(1:n), gamma_pred]) %*% gamma)))
     pYstar <- ifelse(as.vector(comp_dat_all[c(1:n), Y_unval]) == 0, 1 - pYstar, pYstar)
     return_loglik <- return_loglik + sum(log(pYstar))
-    ## ----------------------------------------------- Sum over log[P(Yi*|Xi*,Yi,Xi)]
   }
+  ## ----------------------------------------------- Sum over log[P(Yi*|Xi*,Yi,Xi)]
   #################################################################################
   if (errorsX) {
     ## Sum over I(Xi=xk)Bj(Xi*)log p_kj ---------------------------------------------
